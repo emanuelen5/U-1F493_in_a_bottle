@@ -1,5 +1,3 @@
-import time
-
 from machine import Pin
 
 # Use GP2 for Data, GP3 for Clock

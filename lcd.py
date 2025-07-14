@@ -1,5 +1,5 @@
-import I2C
 import machine
+from machine import I2C
 import utime
 
 from i2c_lcd import I2cLcd
