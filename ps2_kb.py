@@ -1,3 +1,4 @@
+import utime
 from machine import Pin
 
 from keyboard import keyboard
@@ -7,8 +8,8 @@ DATA_PIN = Pin(2, Pin.IN, Pin.PULL_UP)
 CLOCK_PIN = Pin(3, Pin.IN, Pin.PULL_UP)
 
 scan_bits = []
-scan_ready = False
 scan_codes: list[int] = []
+last_key_time = utime.ticks_ms()
 
 # Debug counters for monitoring frame quality
 frame_stats = {
@@ -21,8 +22,15 @@ frame_stats = {
 
 
 def ps2_irq_handler(pin):
-    global scan_bits, scan_ready, scan_codes, frame_stats
-    scan_bits.append(DATA_PIN.value())
+    global scan_bits, scan_codes, frame_stats, last_key_time
+    value = DATA_PIN.value()
+    scan_bits.append(value)
+    last_key_time = utime.ticks_ms()
+
+    scan_code = 0
+    for i in range(len(scan_bits)):
+        scan_code |= (scan_bits[i] << i)
+    print(f"Data bit {len(scan_bits)} received: {value}, 0b{scan_code:011b}")  # Debug output
     if len(scan_bits) == 11:
         # Process the complete scan code
         bits = scan_bits.copy()
@@ -63,7 +71,6 @@ def ps2_irq_handler(pin):
         keyboard.process_scan_code(value)
 
         frame_stats['valid_frames'] += 1
-        scan_ready = True
 
 
 CLOCK_PIN.irq(trigger=Pin.IRQ_FALLING, handler=ps2_irq_handler)
@@ -110,3 +117,10 @@ def reset_frame_stats():
     global frame_stats
     for key in frame_stats:
         frame_stats[key] = 0
+
+def check_bus_timeout():
+    """Check if PS/2 bus has been inactive for 10ms and clear scan_bits if so"""
+    global scan_bits, last_key_time
+    if scan_bits and utime.ticks_diff(utime.ticks_ms(), last_key_time) > 10:
+        print(f"PS/2 bus timeout - clearing {len(scan_bits)} pending bits")
+        scan_bits.clear()
