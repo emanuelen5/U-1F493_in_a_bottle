@@ -1,8 +1,8 @@
-import utime
 import gc
 
+import utime
+
 from lcd_api import LcdApi
-from machine import I2C
 
 # PCF8574 pin definitions
 MASK_RS = 0x01       # P0
