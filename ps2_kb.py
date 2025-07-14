@@ -1,4 +1,5 @@
 from machine import Pin
+
 from keyboard import keyboard
 
 # Use GP2 for Data, GP3 for Clock
@@ -9,28 +10,59 @@ scan_bits = []
 scan_ready = False
 scan_codes: list[int] = []
 
+# Debug counters for monitoring frame quality
+frame_stats = {
+    'total_frames': 0,
+    'start_bit_errors': 0,
+    'stop_bit_errors': 0,
+    'parity_errors': 0,
+    'valid_frames': 0
+}
+
 
 def ps2_irq_handler(pin):
-    global scan_bits, scan_ready, scan_codes
+    global scan_bits, scan_ready, scan_codes, frame_stats
     scan_bits.append(DATA_PIN.value())
     if len(scan_bits) == 11:
         # Process the complete scan code
         bits = scan_bits.copy()
         scan_bits = []
-        scan_ready = False
 
-        # Extract data bits (bits 1-8, excluding start, parity, and stop bits)
+        # Validate PS/2 frame format
+        start_bit = bits[0]
         data_bits = bits[1:9]
+        parity_bit = bits[9]
+        stop_bit = bits[10]
+
+        # Check start bit (should be 0)
+        if start_bit != 0:
+            frame_stats['start_bit_errors'] += 1
+            return  # Invalid frame, ignore
+
+        # Check stop bit (should be 1)
+        if stop_bit != 1:
+            frame_stats['stop_bit_errors'] += 1
+            return  # Invalid frame, ignore
+
+        # Calculate and check parity (odd parity)
+        data_parity = sum(data_bits) % 2
+        expected_parity = 1 - data_parity  # Odd parity
+        if parity_bit != expected_parity:
+            frame_stats['parity_errors'] += 1
+            return  # Parity error, ignore
+
+        # Extract data value (LSB first)
         value = 0
         for i, bit in enumerate(data_bits):
-            value |= bit << i
+            value |= (bit << i)
 
         # Append the scan code to the list
         scan_codes.append(value)
-        
+
         # Process the scan code for key tracking
         keyboard.process_scan_code(value)
-        
+
+        frame_stats['valid_frames'] += 1
         scan_ready = True
 
 
@@ -60,10 +92,21 @@ def is_shift_held():
     return keyboard.is_shift_pressed()
 
 def get_debug_info():
-    """Get debug information including recent scan codes"""
+    """Get debug information including recent scan codes and frame statistics"""
     return {
         'recent_scan_codes': keyboard.get_last_scan_codes(),
         'shift_pressed': keyboard.is_shift_pressed(),
         'typed_text': keyboard.get_keys_string(),
-        'pending_scan_codes': len(scan_codes)
+        'pending_scan_codes': len(scan_codes),
+        'frame_stats': get_frame_stats()
     }
+
+def get_frame_stats():
+    """Get statistics about frame validation"""
+    return frame_stats.copy()
+
+def reset_frame_stats():
+    """Reset frame statistics"""
+    global frame_stats
+    for key in frame_stats:
+        frame_stats[key] = 0
