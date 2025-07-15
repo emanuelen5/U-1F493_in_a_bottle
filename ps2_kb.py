@@ -14,8 +14,8 @@ buffer_tail = 0  # Next read pos
 def ps2_irq_handler(pin):
     global scan_bits, scan_buffer, buffer_head, buffer_tail
 
-    # Shift left and add new bit at position 0
-    scan_bits = ((scan_bits << 1) | DATA_PIN.value()) & 0x7FF
+    # Shift right and add new bit at position 10 (MSB)
+    scan_bits = ((scan_bits >> 1) | (DATA_PIN.value() << 10))
 
     # Check if we have a valid frame (start bit 0, stop bit 1)
     if (scan_bits & 0x1) == 0 and ((scan_bits >> 10) & 0x1) == 1:
@@ -24,6 +24,7 @@ def ps2_irq_handler(pin):
         if next_head != buffer_tail:  # Buffer not full
             scan_buffer[buffer_head] = code
             buffer_head = next_head
+            scan_bits = 0x7FF
         # else: buffer full, discard new code
 
 
