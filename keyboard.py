@@ -44,6 +44,9 @@ SCAN_CODE_MAP = {
     0x22: 'x',
     0x35: 'y',
     0x1A: 'z',
+    82: 'ä',
+    84: 'ö',
+    76: 'å',
 
     # Special keys
     0x29: ' ',  # Space
