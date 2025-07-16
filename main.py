@@ -29,3 +29,10 @@ while True:
         valid_keys = keys.replace("?", "")
         lcd.putstr(valid_keys)
         full_text += valid_keys
+
+        if "\n" in full_text:
+            with open("output.txt", "a") as f:
+                f.write(full_text + "\n")
+
+            lcd.clear()
+            full_text = ""
