@@ -10,7 +10,7 @@ lcd = setup_lcd()
 
 print("Main loop started with PIO driver")
 
-valid_keys = ""
+full_text = ""
 
 while True:
     # Get all available scan codes from PIO driver
@@ -26,7 +26,6 @@ while True:
         print(f"Keys: {scan_codes=}, {keys=}")
         scan_codes.clear()
 
-        valid_keys = valid_keys + keys.replace("?", "")
-
-        lcd.clear()
+        valid_keys = keys.replace("?", "")
         lcd.putstr(valid_keys)
+        full_text += valid_keys
