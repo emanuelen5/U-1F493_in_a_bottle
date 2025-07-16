@@ -1,18 +1,21 @@
 from keyboard import SCAN_CODE_MAP
 from lcd import setup_lcd
-from ps2_kb import read_scan_code, scan_bits
+from ps2_pio import PS2PIODriver
+
+# Initialize PS/2 PIO driver
+ps2 = PS2PIODriver(data_pin=2, clock_pin=3, led_pin=4)
 
 scan_codes = []
 lcd = setup_lcd()
 
-last_scan_bits = scan_bits
-print(f"Main loop started, {last_scan_bits=}, {scan_bits=}")
+print("Main loop started with PIO driver")
 
 valid_keys = ""
 
 while True:
-    while scan_code := read_scan_code():
-        scan_codes.append(scan_code)
+    # Get all available scan codes from PIO driver
+    new_codes = ps2.get_available_codes()
+    scan_codes.extend(new_codes)
 
     if scan_codes:
         keys = "".join([SCAN_CODE_MAP.get(code, "?") for code in scan_codes])
@@ -23,7 +26,3 @@ while True:
 
         lcd.clear()
         lcd.putstr(valid_keys)
-
-    if scan_bits != last_scan_bits:
-        print(f"Current scan bits {last_scan_bits=}, {scan_bits=}")
-    last_scan_bits = scan_bits
