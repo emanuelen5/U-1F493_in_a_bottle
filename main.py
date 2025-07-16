@@ -17,7 +17,11 @@ while True:
     new_codes = ps2.get_available_codes()
     scan_codes.extend(new_codes)
 
-    if scan_codes:
+    if scan_codes and scan_codes[0] in (0xF0, 0xE0):
+        if len(scan_codes) >= 2:
+            scan_codes = scan_codes[2:]
+
+    elif scan_codes:
         keys = "".join([SCAN_CODE_MAP.get(code, "?") for code in scan_codes])
         print(f"Keys: {scan_codes=}, {keys=}")
         scan_codes.clear()
