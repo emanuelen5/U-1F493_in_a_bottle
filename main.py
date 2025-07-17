@@ -1,7 +1,6 @@
-import time
-
 from keyboard import SCAN_CODE_MAP
 from lcd import setup_lcd
+from logbook import Logbook
 from ps2_pio import PS2PIODriver
 
 # Initialize PS/2 PIO driver
@@ -13,6 +12,7 @@ lcd = setup_lcd()
 print("Main loop started with PIO driver")
 
 full_text = ""
+log = Logbook("logbook.txt")
 
 while True:
     while scan_code := ps2.get_scan_code():
@@ -32,10 +32,6 @@ while True:
         full_text += valid_keys
 
         if "\n" in full_text:
-            time = time.localtime()
-            dt = "{:>04d}-{:>02d}-{:>02d} {:>02d}:{:>02d}:{:>02d}".format(*time)
-            with open("output.txt", "a") as f:
-                f.write(f"--- {dt}\n" + full_text + "\n")
-
+            log.write_entry(full_text)
             lcd.clear()
             full_text = ""
