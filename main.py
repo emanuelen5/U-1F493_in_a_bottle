@@ -13,9 +13,8 @@ print("Main loop started with PIO driver")
 full_text = ""
 
 while True:
-    # Get all available scan codes from PIO driver
-    new_codes = ps2.get_available_codes()
-    scan_codes.extend(new_codes)
+    while scan_code := ps2.get_scan_code():
+        scan_codes.append(scan_code)
 
     if scan_codes and scan_codes[0] in (0xF0, 0xE0):
         if len(scan_codes) >= 2:
