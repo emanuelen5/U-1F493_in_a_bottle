@@ -3,7 +3,7 @@ from lcd import setup_lcd
 from ps2_pio import PS2PIODriver
 
 # Initialize PS/2 PIO driver
-ps2 = PS2PIODriver(data_pin=2, clock_pin=3, led_pin=4)
+ps2 = PS2PIODriver(data_pin=2, clock_pin=3)
 
 scan_codes = []
 lcd = setup_lcd()
