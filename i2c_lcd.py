@@ -38,7 +38,7 @@ class I2cLcd(LcdApi):
         self.hal_write_command(cmd)
         gc.collect()
 
-    def hal_write_init_nibble(self, nibble):
+    def hal_write_init_nibble(self, nibble: int):
         # Writes an initialization nibble to the LCD.
         # This particular function is only used during initialization.
         byte = ((nibble >> 4) & 0x0f) << SHIFT_DATA
@@ -56,7 +56,7 @@ class I2cLcd(LcdApi):
         self.i2c.writeto(self.i2c_addr, bytes([0]))
         gc.collect()
         
-    def hal_write_command(self, cmd):
+    def hal_write_command(self, cmd: int):
         # Write a command to the LCD. Data is latched on the falling edge of E.
         byte = ((self.backlight << SHIFT_BACKLIGHT) |
                 (((cmd >> 4) & 0x0f) << SHIFT_DATA))
@@ -71,7 +71,7 @@ class I2cLcd(LcdApi):
             utime.sleep_ms(5)
         gc.collect()
 
-    def hal_write_data(self, data):
+    def hal_write_data(self, data: int):
         # Write data to the LCD. Data is latched on the falling edge of E.
         byte = (MASK_RS |
                 (self.backlight << SHIFT_BACKLIGHT) |

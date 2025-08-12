@@ -119,7 +119,7 @@ class LcdApi:
         self.backlight = False
         self.hal_backlight_off()
 
-    def move_to(self, cursor_x, cursor_y):
+    def move_to(self, cursor_x: int, cursor_y: int):
         """Moves the cursor position to the indicated position. The cursor
         position is zero based (i.e. cursor_x == 0 indicates first column).
         """
@@ -132,7 +132,7 @@ class LcdApi:
             addr += self.num_columns
         self.hal_write_command(self.LCD_DDRAM | addr)
 
-    def putchar(self, char):
+    def putchar(self, char: str):
         """Writes the indicated character to the LCD at the current cursor
         position, and advances the cursor by one position.
         """
@@ -161,7 +161,7 @@ class LcdApi:
         for char in string:
             self.putchar(char)
 
-    def custom_char(self, location, charmap):
+    def custom_char(self, location: int, charmap: list[int]):
         """Write a character to one of the 8 CGRAM locations, available
         as chr(0) through chr(7).
         """
@@ -187,7 +187,7 @@ class LcdApi:
         """
         pass
 
-    def hal_write_command(self, cmd):
+    def hal_write_command(self, cmd: int):
         """Write a command to the LCD.
 
         It is expected that a derived HAL class will implement this
@@ -195,7 +195,7 @@ class LcdApi:
         """
         raise NotImplementedError
 
-    def hal_write_data(self, data):
+    def hal_write_data(self, data: int):
         """Write data to the LCD.
 
         It is expected that a derived HAL class will implement this
