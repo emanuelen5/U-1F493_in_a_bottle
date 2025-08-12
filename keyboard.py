@@ -44,14 +44,17 @@ SCAN_CODE_MAP = {
     0x22: 'x',
     0x35: 'y',
     0x1A: 'z',
+
+    84: 'å',
     82: 'ä',
-    84: 'ö',
-    76: 'å',
+    76: 'ö',
 
     # Special keys
     0x29: ' ',  # Space
     0x5A: '\n', # Enter
     0x66: '\b', # Backspace
+
+    0x05: "♥", # F1
 }
 
 # Shifted versions of numbers

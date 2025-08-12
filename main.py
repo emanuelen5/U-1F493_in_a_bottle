@@ -2,12 +2,16 @@ from keyboard import SCAN_CODE_MAP
 from lcd import setup_lcd
 from logbook import Logbook
 from ps2_pio import PS2PIODriver
+from hd44780 import get_japanese_keycode_map, add_missing_characters
 
 # Initialize PS/2 PIO driver
 ps2 = PS2PIODriver(data_pin=2, clock_pin=3)
 
 scan_codes = []
 lcd = setup_lcd()
+
+keycode_map = get_japanese_keycode_map()
+add_missing_characters(lcd, keycode_map)
 
 print("Main loop started with PIO driver")
 
@@ -23,13 +27,17 @@ while True:
             scan_codes = scan_codes[2:]
 
     elif scan_codes:
-        keys = "".join([SCAN_CODE_MAP.get(code, "?") for code in scan_codes])
-        print(f"Keys: {scan_codes=}, {keys=}")
+        chars = "".join([SCAN_CODE_MAP.get(code, "") for code in scan_codes])
+        keycodes = [keycode_map.get(char, None) for char in chars]
+        print(f"Keys: {scan_codes=}, {chars=} {keycodes=}")
         scan_codes.clear()
 
-        valid_keys = keys.replace("?", "")
-        lcd.putstr(valid_keys)
-        full_text += valid_keys
+        full_text += chars
+        for keycode in keycodes:
+            if keycode is None:
+                continue
+
+            lcd.putchar(chr(keycode))
 
         if "\n" in full_text:
             log.write_entry(full_text)
