@@ -32,14 +32,21 @@ while True:
         print(f"Keys: {scan_codes=}, {chars=} {keycodes=}")
         scan_codes.clear()
 
-        full_text += chars
         for keycode in keycodes:
             if keycode is None:
                 continue
 
             lcd.putchar(chr(keycode))
 
-        if "\n" in full_text:
-            log.write_entry(full_text)
-            lcd.clear()
-            full_text = ""
+        for c in chars:
+            if "\n" == c:
+                log.write_entry(full_text)
+                lcd.clear()
+                full_text = ""
+            elif c == "\b":
+                full_text = full_text[:-1]
+                lcd.move_to(lcd.cursor_x - 1, lcd.cursor_y)
+                lcd.putchar(" ")
+                lcd.move_to(lcd.cursor_x - 1, lcd.cursor_y)
+            else:
+                full_text += c
