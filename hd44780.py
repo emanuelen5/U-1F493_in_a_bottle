@@ -3,9 +3,9 @@ from lcd_api import LcdApi
 def get_japanese_keycode_map() -> dict[str, int]:
     # Japanese characters, ROM code: A00
     japanese_keycode_map: dict[str, int] = {
-        " ": 0x29,
-        "\n": 0x5A,
-        "\\": 0xA4,
+        " ": 0x20,
+        "\n": 0x20,
+        "\\": 0x56,
         "ä": 0xe1,
         "ö": 0xef,
     }
