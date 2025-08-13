@@ -3,6 +3,19 @@ PS/2 Keyboard scan code to key mapping and tracking
 Handles letters, numbers, and shift key state
 """
 
+key_f1 = "♥"
+key_f2 = "☻"
+key_f3 = "♦"
+key_f4 = "♣"
+key_f5 = "♠"
+key_f6 = "•"
+key_f7 = "◘"
+key_f8 = "○"
+key_f9 = "◙"
+key_f10 = "♂"
+key_f11 = "♀"
+key_f12 = "♪"
+
 # PS/2 scan code to key mapping for letters and numbers
 SCAN_CODE_MAP = {
     # Numbers (top row)
@@ -54,7 +67,18 @@ SCAN_CODE_MAP = {
     0x5A: '\n', # Enter
     0x66: '\b', # Backspace
 
-    0x05: "♥", # F1
+    5: key_f1,
+    6: key_f2,
+    4: key_f3,
+    12: key_f4,
+    3: key_f5,
+    11: key_f6,
+    131: key_f7,
+    10: key_f8,
+    1: key_f9,
+    9: key_f10,
+    120: key_f11,
+    7: key_f12,
 }
 
 # Shifted versions of numbers
