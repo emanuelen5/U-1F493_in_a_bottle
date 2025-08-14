@@ -29,6 +29,15 @@ SCAN_CODE_MAP = {
     0x3D: '7',
     0x3E: '8',
     0x46: '9',
+    0x4e: '+',
+    0x55: '´',
+
+    # Punctuation
+    0x41: ',',
+    0x49: '.',
+    0x4a: '-',
+    0x61: '<',
+    0x0e: '§',
 
     # Letters (QWERTY layout)
     0x1C: 'a',
@@ -95,6 +104,81 @@ SHIFTED_NUMBERS = {
     '9': '(',
 }
 
-# Shift key scan codes
-SHIFT_LEFT = 0x12
-SHIFT_RIGHT = 0x59
+modifiers = str
+pressed = True
+released = False
+
+
+class Key:
+    def __init__(self, char: str):
+        self.char = char
+
+
+class KeyboardTracker:
+    def __init__(self, verbose: bool = False):
+        self.keys_state: dict[modifiers, bool] = {
+            "LeftShift": released,
+            "LeftCtrl": released,
+            "LeftAlt": released,
+            "RightShift": released,
+            "RightCtrl": released,
+            "RightAlt": released,
+        }
+        self.modifier_codes: dict[int, modifiers] = {
+            0x12: "LeftShift",
+            0x14: "LeftCtrl",
+            0x11: "LeftAlt",
+            0x59: "RightShift",
+            0xE014: "RightCtrl",
+            0xE011: "RightAlt",
+        }
+        self.verbose = verbose
+
+        self._previous_code = 0
+        self.key_presses: list[int] = []
+
+    def _process_code(self, code: int):
+        release_code_prefix = 0xF0
+        extended_code_prefix = 0xE0
+
+        if code in (extended_code_prefix, release_code_prefix):
+            return
+
+        if self._previous_code == extended_code_prefix:
+            code = (extended_code_prefix << 8) | code
+
+        modifier_name = self.modifier_codes.get(code, None)
+        if modifier_name:
+            got_pressed = self._previous_code != release_code_prefix
+            if self.verbose:
+                print(f"modifier: {modifier_name}={got_pressed}")
+            self.keys_state[modifier_name] = released if got_pressed else pressed
+            return
+
+        if self._previous_code == release_code_prefix:
+            return
+
+        if self.verbose:
+            print(f"Scan code: {code} (0x{code:02x})")
+
+        self.key_presses.append(code)
+
+
+    def process_code(self, code: int):
+        self._process_code(code)
+        self._previous_code = code
+
+    def get_keypress(self) -> Key | None:
+        if not self.key_presses:
+            return None
+
+        key_code = self.key_presses.pop()
+        char = SCAN_CODE_MAP.get(key_code, None)
+        print(f"Key pressed: {char} (0x{key_code:02x})")
+        if char is None:
+            return None
+
+        return Key(char)
+
+    def is_key_pressed(self, key: modifiers) -> bool:
+        return self.keys_state[key]

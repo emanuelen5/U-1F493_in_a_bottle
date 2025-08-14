@@ -1,4 +1,4 @@
-from keyboard import SCAN_CODE_MAP
+from keyboard import KeyboardTracker, Key
 from lcd import setup_lcd
 from logbook import Logbook
 from ps2_pio import PS2PIODriver
@@ -6,8 +6,8 @@ from hd44780 import get_japanese_keycode_map, add_missing_characters
 
 # Initialize PS/2 PIO driver
 ps2 = PS2PIODriver(data_pin=2, clock_pin=3)
+kbd = KeyboardTracker(verbose=True)
 
-scan_codes = []
 lcd = setup_lcd()
 
 keycode_map = get_japanese_keycode_map()
@@ -20,33 +20,35 @@ log = Logbook("logbook.txt")
 
 while True:
     while scan_code := ps2.get_scan_code():
-        scan_codes.append(scan_code)
+        kbd.process_code(scan_code)
 
-    if scan_codes and scan_codes[0] in (0xF0, 0xE0):
-        if len(scan_codes) >= 2:
-            scan_codes = scan_codes[2:]
+    keys: list[Key] = []
+    while key := kbd.get_keypress():
+        keys.append(key)
 
-    elif scan_codes:
-        chars = "".join([SCAN_CODE_MAP.get(code, "") for code in scan_codes])
-        keycodes = [keycode_map.get(char, None) for char in chars]
-        print(f"Keys: {scan_codes=}, {chars=} {keycodes=}")
-        scan_codes.clear()
+    if not keys:
+        continue
 
-        for keycode in keycodes:
-            if keycode is None:
-                continue
+    for key in keys:
+        if key.char == "\n":
+            log.write_entry(full_text)
+            full_text = ""
+        elif key.char == "\b":
+            full_text = full_text[:-1]
+        elif key.char in keycode_map:
+            full_text += key.char
 
-            lcd.putchar(chr(keycode))
+    charcodes = []
+    for c in reversed(full_text):
+        if len(charcodes) >= 32:
+            break
 
-        for c in chars:
-            if "\n" == c:
-                log.write_entry(full_text)
-                lcd.clear()
-                full_text = ""
-            elif c == "\b":
-                full_text = full_text[:-1]
-                lcd.move_to(lcd.cursor_x - 1, lcd.cursor_y)
-                lcd.putchar(" ")
-                lcd.move_to(lcd.cursor_x - 1, lcd.cursor_y)
-            else:
-                full_text += c
+        charcode = keycode_map.get(c, None)
+        if charcode is None:
+            continue
+
+        charcodes.insert(0, charcode)
+
+    lcd.clear()
+    for c in charcodes:
+        lcd.putchar(chr(c))

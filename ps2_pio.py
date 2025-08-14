@@ -55,10 +55,10 @@ class PS2PIODriver:
 
     def get_scan_code(self):
         if not self.sm.rx_fifo():
-            return
+            return None
 
         # The PIO FIFO returns a 32-bit frame
-        frame = self.sm.get() >> 32 - 11
+        frame: int = self.sm.get() >> 32 - 11
 
         start_bit = frame & 0x1
         data_bits = (frame >> 1) & 0xFF
