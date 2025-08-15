@@ -22,6 +22,12 @@ while True:
     while scan_code := ps2.get_scan_code():
         kbd.process_code(scan_code)
 
+    if ps2.get_parity_error_count() > 0:
+        lcd.clear()
+        lcd.putstr("Parity error. Resetting PIO...")
+        ps2.reset_sm()
+        continue
+
     keys: list[Key] = []
     while key := kbd.get_keypress():
         keys.append(key)

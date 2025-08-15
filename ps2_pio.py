@@ -31,6 +31,7 @@ class PS2PIODriver:
             jmp_pin=self.clock_pin,
         )
         self.sm.active(1)
+        self.parity_error_count = 0
 
     @rp2.asm_pio(
         in_shiftdir=rp2.PIO.SHIFT_RIGHT,
@@ -73,9 +74,29 @@ class PS2PIODriver:
 
         if not has_ok_parity(frame):
             print(f"Parity error: frame={frame:03X}, data={data_bits:02X}")
+            self.parity_error_count += 1
             return None
 
         return data_bits
+
+    def get_parity_error_count(self):
+        return self.parity_error_count
+
+    def reset_sm(self):
+        self.sm.active(0)
+
+        while self.sm.rx_fifo():
+            self.sm.get()
+
+        self.parity_error_count = 0
+        self.sm = rp2.StateMachine(
+            0,
+            self.ps2_pio_program,
+            freq=1_000_000,  # 1MHz - much faster than PS/2 clock
+            in_base=self.data_pin,
+            jmp_pin=self.clock_pin,
+        )
+        self.sm.active(1)
 
     def deinit(self):
         """Clean up the PIO state machine"""
