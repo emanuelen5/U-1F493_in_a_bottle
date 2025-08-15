@@ -51,6 +51,11 @@ while True:
             full_text = ""
         elif key.char == "\b":
             full_text = full_text[:-1]
+        elif key.char == "\b\b":
+            idx = full_text.rfind(" ")
+            if idx == -1:
+                idx = 0
+            full_text = full_text[:idx]
         elif key.char in keycode_map:
             full_text += key.char
 
