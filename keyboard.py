@@ -17,7 +17,7 @@ key_f11 = "♀"
 key_f12 = "♪"
 
 # PS/2 scan code to key mapping for letters and numbers
-SCAN_CODE_MAP = {
+key_map = {
     # Numbers (top row)
     0x45: '0',
     0x16: '1',
@@ -90,20 +90,81 @@ SCAN_CODE_MAP = {
     9: key_f10,
     120: key_f11,
     7: key_f12,
+
+    0xe069: "end",
 }
 
-# Shifted versions of numbers
-SHIFTED_NUMBERS = {
-    '0': ')',
-    '1': '!',
-    '2': '@',
-    '3': '#',
-    '4': '$',
-    '5': '%',
-    '6': '^',
-    '7': '&',
-    '8': '*',
-    '9': '(',
+shift_key_map = {
+    # Numbers (top row)
+    0x45: '=',
+    0x16: '!',
+    0x1E: '"',
+    0x26: '#',
+    0x25: '¤',
+    0x2E: '%',
+    0x36: '&',
+    0x3D: '/',
+    0x3E: '(',
+    0x46: ')',
+    0x4e: '?',
+    0x55: '`',
+
+    # Punctuation
+    0x41: ';',
+    0x49: ':',
+    0x4a: '_',
+    0x61: '>',
+    0x0e: '~',
+    0x5d: "*",
+    0x5b: "^",
+
+    # Letters (QWERTY layout)
+    0x1C: 'A',
+    0x32: 'B',
+    0x21: 'C',
+    0x23: 'D',
+    0x24: 'E',
+    0x2B: 'F',
+    0x34: 'G',
+    0x33: 'H',
+    0x43: 'I',
+    0x3B: 'J',
+    0x42: 'K',
+    0x4B: 'L',
+    0x3A: 'M',
+    0x31: 'N',
+    0x44: 'O',
+    0x4D: 'P',
+    0x15: 'Q',
+    0x2D: 'R',
+    0x1B: 'S',
+    0x2C: 'T',
+    0x3C: 'U',
+    0x2A: 'V',
+    0x1D: 'W',
+    0x22: 'X',
+    0x35: 'Y',
+    0x1A: 'Z',
+
+    # no font for uppercase umlauts
+    84: 'å',
+    82: 'ä',
+    76: 'ö',
+
+    # Special keys
+    0x29: ' ',  # Space
+    0x5A: '\n', # Enter
+    0x66: '\b\b', # Backspace
+}
+
+ctrl_alt_key_map = {
+    0x1E: "@",
+    0x26: "£",
+    0x25: "$",
+}
+
+ctrl_key_map = {
+    0x66: '\b\b', # Backspace
 }
 
 modifiers = str
@@ -154,13 +215,26 @@ class KeyboardTracker:
             got_pressed = self._previous_code != release_code_prefix
             if self.verbose:
                 print(f"modifier: {modifier_name}={got_pressed}")
-            self.keys_state[modifier_name] = released if got_pressed else pressed
+            self.keys_state[modifier_name] = pressed if got_pressed else released
             return
 
         if self._previous_code == release_code_prefix:
             return
 
-        char = SCAN_CODE_MAP.get(code, None)
+
+        shift_down = self.is_key_pressed("LeftShift") or self.is_key_pressed("RightShift")
+        ctrl_down = self.is_key_pressed("LeftCtrl") or self.is_key_pressed("RightCtrl")
+        alt_down = self.is_key_pressed("LeftAlt") or self.is_key_pressed("RightAlt")
+
+        char = None
+        if shift_down and not ctrl_down and not alt_down:
+            char = shift_key_map.get(code, None)
+        elif not shift_down and ctrl_down and not alt_down:
+            char = ctrl_key_map.get(code, None)
+        elif not shift_down and ctrl_down and alt_down:
+            char = ctrl_alt_key_map.get(code, None)
+        elif not shift_down and not ctrl_down and not alt_down:
+            char = key_map.get(code, None)
 
         if self.verbose:
             print(f"Scan code: {code} (0x{code:02x}), {char=}")
