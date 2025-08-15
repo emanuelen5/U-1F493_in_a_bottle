@@ -49,6 +49,15 @@ while True:
 
         charcodes.insert(0, charcode)
 
-    lcd.clear()
-    for c in charcodes:
-        lcd.putchar(chr(c))
+    text_len = len(charcodes)
+    lcd.move_to(0, 0)
+    for i, c in enumerate(charcodes, start=1):
+        lcd.hal_write_data(c)
+        if i == 16:
+            lcd.move_to(0, 1)
+    for _ in range(max(0, 32 - text_len)):
+        lcd.hal_write_data(ord(" "))
+    if text_len > 32:
+        lcd.move_to(15, 1)
+    else:
+        lcd.move_to(text_len % 16, text_len // 16)

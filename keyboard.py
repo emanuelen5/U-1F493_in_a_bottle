@@ -38,6 +38,8 @@ SCAN_CODE_MAP = {
     0x4a: '-',
     0x61: '<',
     0x0e: '§',
+    0x5d: "'",
+    0x5b: "¨",
 
     # Letters (QWERTY layout)
     0x1C: 'a',
@@ -135,7 +137,7 @@ class KeyboardTracker:
         self.verbose = verbose
 
         self._previous_code = 0
-        self.key_presses: list[int] = []
+        self.key_presses: list[str] = []
 
     def _process_code(self, code: int):
         release_code_prefix = 0xF0
@@ -158,10 +160,15 @@ class KeyboardTracker:
         if self._previous_code == release_code_prefix:
             return
 
-        if self.verbose:
-            print(f"Scan code: {code} (0x{code:02x})")
+        char = SCAN_CODE_MAP.get(code, None)
 
-        self.key_presses.append(code)
+        if self.verbose:
+            print(f"Scan code: {code} (0x{code:02x}), {char=}")
+
+        if char is None:
+            return None
+
+        self.key_presses.append(char)
 
 
     def process_code(self, code: int):
@@ -172,13 +179,7 @@ class KeyboardTracker:
         if not self.key_presses:
             return None
 
-        key_code = self.key_presses.pop()
-        char = SCAN_CODE_MAP.get(key_code, None)
-        print(f"Key pressed: {char} (0x{key_code:02x})")
-        if char is None:
-            return None
-
-        return Key(char)
+        return Key(self.key_presses.pop(0))
 
     def is_key_pressed(self, key: modifiers) -> bool:
         return self.keys_state[key]

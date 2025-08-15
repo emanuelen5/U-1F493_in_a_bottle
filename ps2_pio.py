@@ -36,6 +36,7 @@ class PS2PIODriver:
         in_shiftdir=rp2.PIO.SHIFT_RIGHT,
         autopush=True,
         push_thresh=11,  # Push after 11 bits (complete PS/2 frame)
+        fifo_join=rp2.PIO.JOIN_RX,  # Join RX FIFO with TX, to make it twice as big
     )
     def ps2_pio_program():
         label("start_bit")
@@ -58,7 +59,7 @@ class PS2PIODriver:
             return None
 
         # The PIO FIFO returns a 32-bit frame
-        frame: int = self.sm.get() >> 32 - 11
+        frame: int = self.sm.get() >> (32 - 11)
 
         start_bit = frame & 0x1
         data_bits = (frame >> 1) & 0xFF
