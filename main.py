@@ -3,6 +3,7 @@ from lcd import setup_lcd
 from logbook import Logbook
 from ps2_pio import PS2PIODriver
 from hd44780 import get_japanese_keycode_map, add_missing_characters
+import gc
 
 # Initialize PS/2 PIO driver
 ps2 = PS2PIODriver(data_pin=2, clock_pin=3)
@@ -19,6 +20,8 @@ full_text = ""
 log = Logbook("logbook.txt")
 
 while True:
+    gc.collect()
+
     while scan_code := ps2.get_scan_code():
         kbd.process_code(scan_code)
 
