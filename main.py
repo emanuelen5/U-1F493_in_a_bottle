@@ -1,3 +1,4 @@
+import utime
 from keyboard import KeyboardTracker, Key
 from lcd import setup_lcd
 from logbook import Logbook
@@ -21,6 +22,12 @@ log = Logbook("logbook.txt")
 
 while True:
     gc.collect()
+
+    blink_time = utime.ticks_ms()
+    if blink_time % 1000 < 500:
+        lcd.hide_cursor()
+    else:
+        lcd.show_cursor()
 
     while scan_code := ps2.get_scan_code():
         kbd.process_code(scan_code)
@@ -49,7 +56,7 @@ while True:
 
     charcodes = []
     for c in reversed(full_text):
-        if len(charcodes) >= 32:
+        if len(charcodes) >= 31:
             break
 
         charcode = keycode_map.get(c, None)
