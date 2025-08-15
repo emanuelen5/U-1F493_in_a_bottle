@@ -1,4 +1,3 @@
-import utime
 from keyboard import KeyboardTracker, Key
 from lcd import setup_lcd
 from logbook import Logbook
@@ -11,6 +10,7 @@ ps2 = PS2PIODriver(data_pin=2, clock_pin=3)
 kbd = KeyboardTracker(verbose=True)
 
 lcd = setup_lcd()
+lcd.blink_cursor_on()
 
 keycode_map = get_japanese_keycode_map()
 add_missing_characters(lcd, keycode_map)
@@ -22,12 +22,6 @@ log = Logbook("logbook.txt")
 
 while True:
     gc.collect()
-
-    blink_time = utime.ticks_ms()
-    if blink_time % 1000 < 500:
-        lcd.hide_cursor()
-    else:
-        lcd.show_cursor()
 
     while scan_code := ps2.get_scan_code():
         kbd.process_code(scan_code)
