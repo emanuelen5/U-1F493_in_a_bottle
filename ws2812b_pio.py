@@ -39,18 +39,18 @@ class WS2812B_Driver:
         )
         self.state_machine.active(1)
 
-    def _convert_rgb_to_grb(self, red: int, green: int, blue: int) -> int:
+    def _encode(self, red: int, green: int, blue: int) -> int:
         red = int(red * self.brightness_factor) & 0xFF
         green = int(green * self.brightness_factor) & 0xFF
         blue = int(blue * self.brightness_factor) & 0xFF
-        return (green << 16) | (red << 8) | blue
+        return (red << 16) | (green << 8) | blue
 
     def set_led(self, index: int, red: int, green: int, blue: int) -> None:
         if 0 <= index < self.led_count:
-            self.pixel_buffer[index] = self._convert_rgb_to_grb(red, green, blue)
+            self.pixel_buffer[index] = self._encode(red, green, blue)
 
     def fill_strip(self, red: int, green: int, blue: int) -> None:
-        color_value = self._convert_rgb_to_grb(red, green, blue)
+        color_value = self._encode(red, green, blue)
         for i in range(self.led_count):
             self.pixel_buffer[i] = color_value
 
