@@ -55,9 +55,6 @@ class WS2812B_Driver:
             self.pixel_buffer[i] = color_value
 
     def update_strip(self) -> None:
-        dimmer_arr = array.array("I", [0xFFFFFF00 >> 8])
-        self.state_machine.put(dimmer_arr, 8)
-
         for pixel_data in self.pixel_buffer:
             self.state_machine.put(pixel_data, 8)
 
