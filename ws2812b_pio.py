@@ -81,9 +81,49 @@ class WS2812B_Driver:
             self.update_strip()
             time.sleep(speed)
 
+    def animate_wandering_pulse(self, red: int, green: int, blue: int, width: float = 3.0, steps: int = 1000) -> None:
+        """
+        Show a wandering pulse with faded edges that travels from before the start to past the end.
+        - red, green, blue: color of the pulse
+        - width: controls how wide the pulse is (standard deviation for Gaussian)
+        - speed: delay between frames
+        - steps: number of animation steps
+        """
+        led_count = self.led_count
+        # Start from before 0, travel to past the end
+        start_pos = -width * 3  # Start well before the first LED
+        end_pos = led_count + width * 3  # End well after the last LED
+
+        for t in range(steps):
+            # Cosine-based movement: starts slow, accelerates (half period from -1 to 1)
+            # cos(0) = 1, cos(π) = -1, so we use (-cos + 1) / 2 to get 0 to 1
+            angle = math.pi * t / (steps - 1)  # 0 to π
+            progress = (-math.cos(angle) + 1) / 2  # starts slow, ends fast
+            center = start_pos + progress * (end_pos - start_pos)
+
+            # Clear all LEDs first
+            for i in range(led_count):
+                self.set_led(i, 0, 0, 0)
+
+            # Set pulse LEDs
+            for i in range(led_count):
+                # Gaussian fade
+                dist = abs(i - center)
+                fade = math.exp(-0.5 * (dist / width) ** 2)
+                # Slightly dim the LEDs around the center for edge effect
+                edge_fade = 0.7 + 0.3 * fade
+                r = int(red * fade * edge_fade)
+                g = int(green * fade * edge_fade)
+                b = int(blue * fade * edge_fade)
+                self.set_led(i, r, g, b)
+            self.update_strip()
+
 
 if __name__ == "__main__":
-    led_strip = WS2812B_Driver(pin_num=15, led_count=10, state_machine_id=1)
+    led_strip = WS2812B_Driver(pin_num=15, led_count=50, state_machine_id=1)
     led_strip.set_brightness(1.0)
+    led_strip.fill_strip(0, 0, 0)
+    led_strip.update_strip()
 
-    led_strip.rainbow_cycle(speed=0.0)
+    # Example: wandering pulse, color adjustable (e.g. blue)
+    led_strip.animate_wandering_pulse(red=255, green=0, blue=20, width=1.5, steps=100)
