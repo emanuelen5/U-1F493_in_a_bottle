@@ -20,6 +20,48 @@ print("Main loop started with PIO driver")
 full_text = ""
 log = Logbook("logbook.txt")
 
+# Display buffer to track what's currently shown (2 lines × 16 chars)
+display_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
+
+def update_display_optimized(text, keycode_map: dict[str, int]):
+    """Update only the parts of the display that have changed"""
+    global display_buffer
+
+    # Convert text to character codes (last 31 chars, reversed order)
+    charcodes = []
+    for c in reversed(text):
+        if len(charcodes) >= 31:
+            break
+        charcode = keycode_map.get(c, None)
+        if charcode is None:
+            continue
+        charcodes.insert(0, charcode)
+
+    # Create new display state
+    new_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
+
+    # Fill the new buffer with the text
+    for i, charcode in enumerate(charcodes):
+        row = i // 16
+        col = i % 16
+        if row < 2:
+            new_buffer[row][col] = charcode
+
+    # Update only changed positions
+    for row in range(2):
+        for col in range(16):
+            if new_buffer[row][col] != display_buffer[row][col]:
+                lcd.move_to(col, row)
+                lcd.hal_write_data(new_buffer[row][col])
+                display_buffer[row][col] = new_buffer[row][col]
+
+    # Position cursor at the end of text
+    text_len = len(charcodes)
+    if text_len > 32:
+        lcd.move_to(15, 1)
+    else:
+        lcd.move_to(text_len % 16, text_len // 16)
+
 while True:
     gc.collect()
 
@@ -28,6 +70,8 @@ while True:
 
     if ps2.get_parity_error_count() > 0:
         lcd.clear()
+        # Reset display buffer since we cleared the screen
+        display_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
         lcd.putstr("Parity error. Resetting PIO...")
         ps2.reset_sm()
         continue
@@ -53,26 +97,5 @@ while True:
         elif key.char in keycode_map:
             full_text += key.char
 
-    charcodes = []
-    for c in reversed(full_text):
-        if len(charcodes) >= 31:
-            break
-
-        charcode = keycode_map.get(c, None)
-        if charcode is None:
-            continue
-
-        charcodes.insert(0, charcode)
-
-    text_len = len(charcodes)
-    lcd.move_to(0, 0)
-    for i, c in enumerate(charcodes, start=1):
-        lcd.hal_write_data(c)
-        if i == 16:
-            lcd.move_to(0, 1)
-    for _ in range(max(0, 32 - text_len)):
-        lcd.hal_write_data(ord(" "))
-    if text_len > 32:
-        lcd.move_to(15, 1)
-    else:
-        lcd.move_to(text_len % 16, text_len // 16)
+    # Update display only with changed parts
+    update_display_optimized(full_text, keycode_map)
