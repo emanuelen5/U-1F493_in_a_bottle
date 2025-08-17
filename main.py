@@ -48,12 +48,19 @@ def update_display_optimized(text, keycode_map: dict[str, int]):
             new_buffer[row][col] = charcode
 
     # Update only changed positions
+    cursor_row, cursor_col = -1, -1  # Track where we think the cursor is
     for row in range(2):
         for col in range(16):
             if new_buffer[row][col] != display_buffer[row][col]:
-                lcd.move_to(col, row)
+                # Only move cursor if we're not already at the right position
+                if cursor_row != row or cursor_col != col:
+                    lcd.move_to(col, row)
+                    cursor_row, cursor_col = row, col
+
                 lcd.hal_write_data(new_buffer[row][col])
                 display_buffer[row][col] = new_buffer[row][col]
+                # Cursor automatically moves right after writing (but doesn't wrap)
+                cursor_col += 1
 
     # Position cursor at the end of text
     text_len = len(charcodes)
