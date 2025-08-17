@@ -53,6 +53,7 @@ while True:
     for key in keys:
         if key.char == "\n":
             log.write_entry(full_text)
+            led_strip.animate_wandering_pulse(red=255, green=0, blue=20, width=1.5, steps=100)
             full_text = ""
         elif key.char == "\b":
             full_text = full_text[:-1]
