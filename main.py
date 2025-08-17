@@ -1,10 +1,11 @@
 from frame_updater import FrameUpdater
-from keyboard import KeyboardTracker, Key
+from keyboard import KeyboardTracker, Key, key_f10
 from lcd import setup_lcd
 from logbook import Logbook
 from ps2_pio import PS2PIODriver
 from hd44780 import get_japanese_keycode_map, add_missing_characters
 import gc
+from ws2812b_pio import WS2812B_Driver
 
 # Initialize PS/2 PIO driver
 ps2 = PS2PIODriver(data_pin=2, clock_pin=3)
@@ -17,6 +18,7 @@ keycode_map = get_japanese_keycode_map()
 add_missing_characters(lcd, keycode_map)
 
 frame = FrameUpdater(lcd, keycode_map)
+led_strip = WS2812B_Driver(pin_num=15, led_count=50, state_machine_id=1)
 
 print("Main loop started with PIO driver")
 
@@ -59,6 +61,9 @@ while True:
             if idx == -1:
                 idx = 0
             full_text = full_text[:idx]
+        elif key.char == key_f10:
+            led_strip.animate_wandering_pulse(red=255, green=0, blue=20, width=1.5, steps=100)
+            continue
         elif key.char in keycode_map:
             full_text += key.char
 
