@@ -1,6 +1,7 @@
 from frame_updater import FrameUpdater
 from keyboard import KeyboardTracker, Key, key_f10
 from lcd import setup_lcd
+from led_animator import LedAnimator
 from logbook import Logbook
 from ps2_pio import PS2PIODriver
 from hd44780 import get_japanese_keycode_map, add_missing_characters
@@ -19,6 +20,7 @@ add_missing_characters(lcd, keycode_map)
 
 frame = FrameUpdater(lcd, keycode_map)
 led_strip = WS2812B_Driver(pin_num=15, led_count=50, state_machine_id=1)
+led_animator = LedAnimator(led_strip)
 
 print("Main loop started with PIO driver")
 
@@ -47,13 +49,10 @@ while True:
     while key := kbd.get_keypress():
         keys.append(key)
 
-    if not keys:
-        continue
-
     for key in keys:
         if key.char == "\n":
             log.write_entry(full_text)
-            led_strip.animate_wandering_pulse(red=255, green=0, blue=20, width=1.5, steps=100)
+            led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=2000)
             full_text = ""
         elif key.char == "\b":
             full_text = full_text[:-1]
@@ -63,9 +62,9 @@ while True:
                 idx = 0
             full_text = full_text[:idx]
         elif key.char == key_f10:
-            led_strip.animate_wandering_pulse(red=255, green=0, blue=20, width=1.5, steps=100)
-            continue
+            led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=2000)
         elif key.char in keycode_map:
             full_text += key.char
 
     frame.update_display_optimized(full_text)
+    led_animator.service()
