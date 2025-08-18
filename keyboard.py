@@ -177,6 +177,10 @@ class Key:
         self.char = char
 
 
+release_code_prefix = 0xF0
+extended_code_prefix = 0xE0
+
+
 class KeyboardTracker:
     def __init__(self, verbose: bool = False):
         self.keys_state: dict[modifiers, bool] = {
@@ -196,31 +200,25 @@ class KeyboardTracker:
             0xE011: "RightAlt",
         }
         self.verbose = verbose
+        self._extended_keycode = False
+        self._released_key = False
 
-        self._previous_code = 0
         self.key_presses: list[str] = []
 
     def _process_code(self, code: int):
-        release_code_prefix = 0xF0
-        extended_code_prefix = 0xE0
-
-        if code in (extended_code_prefix, release_code_prefix):
-            return
-
-        if self._previous_code == extended_code_prefix:
+        if self._extended_keycode:
             code = (extended_code_prefix << 8) | code
 
         modifier_name = self.modifier_codes.get(code, None)
         if modifier_name:
-            got_pressed = self._previous_code != release_code_prefix
+            got_pressed = not self._released_key
             if self.verbose:
                 print(f"modifier: {modifier_name}={got_pressed}")
-            self.keys_state[modifier_name] = pressed if got_pressed else released
+            self.keys_state[modifier_name] = got_pressed
             return
 
-        if self._previous_code == release_code_prefix:
+        if self._released_key:
             return
-
 
         shift_down = self.is_key_pressed("LeftShift") or self.is_key_pressed("RightShift")
         ctrl_down = self.is_key_pressed("LeftCtrl") or self.is_key_pressed("RightCtrl")
@@ -244,10 +242,17 @@ class KeyboardTracker:
 
         self.key_presses.append(char)
 
-
     def process_code(self, code: int):
-        self._process_code(code)
-        self._previous_code = code
+        if code == extended_code_prefix:
+            self._extended_keycode = True
+            return
+        elif code == release_code_prefix:
+            self._released_key = True
+            return
+        else:
+            self._process_code(code)
+            self._extended_keycode = False
+            self._released_key = False
 
     def get_keypress(self) -> Key | None:
         if not self.key_presses:
