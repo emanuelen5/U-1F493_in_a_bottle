@@ -6,7 +6,7 @@ from ws2812b_pio import WS2812B_Driver
 class Pulse:
     def __init__(self, red, green, blue, width, lifetime_ms):
         self.activate(red, green, blue, width, lifetime_ms, active=False)
-    
+
     def activate(self, red, green, blue, width, lifetime_ms, active=True):
         self.red = red
         self.green = green
@@ -36,7 +36,6 @@ class Pulse:
 
 
 class LedAnimator:
-
     def __init__(self, led_strip: WS2812B_Driver):
         self.led_strip = led_strip
         self.pulses = [Pulse(0, 0, 0, 0, 0) for _ in range(10)]
@@ -51,7 +50,7 @@ class LedAnimator:
         else:
             print("All pulses are allocated, cannot add more.")
             return
-        
+
         pulse.activate(red, green, blue, width, lifetime_ms)
 
     def service(self):
@@ -68,7 +67,12 @@ class LedAnimator:
             start_pos = -pulse.width * 3
             end_pos = led_count + pulse.width * 3
             center = start_pos + pos * (end_pos - start_pos)
-            for i in range(led_count):
+
+            # Determine the range of LEDs affected by this pulse
+            min_led = max(0, int(center - pulse.width * 3))
+            max_led = min(led_count - 1, int(center + pulse.width * 3))
+
+            for i in range(min_led, max_led + 1):  # Only iterate over affected LEDs
                 dist = abs(i - center)
                 fade = math.exp(-0.5 * (dist / pulse.width) ** 2)
                 edge_fade = 0.7 + 0.3 * fade
