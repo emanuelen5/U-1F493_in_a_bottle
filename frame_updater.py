@@ -6,9 +6,12 @@ class FrameUpdater:
         self.lcd = lcd
         self.display_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
         self.keycode_map = keycode_map
+        self.last_text = " " * 32
 
     def update_display_optimized(self, text):
         """Update only the parts of the display that have changed"""
+        if text == self.last_text:
+            return  # No changes, skip update
 
         # Convert text to character codes (last 31 chars, reversed order)
         charcodes = []
@@ -51,3 +54,5 @@ class FrameUpdater:
             self.lcd.move_to(15, 1)
         else:
             self.lcd.move_to(text_len % 16, text_len // 16)
+
+        self.last_text = text
