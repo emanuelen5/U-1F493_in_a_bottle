@@ -16,6 +16,16 @@ key_f10 = "♂"
 key_f11 = "♀"
 key_f12 = "♪"
 
+# Special key constants for cursor movement and editing
+key_left_arrow = '\x1b[D'   # ASCII escape sequence for left arrow
+key_right_arrow = '\x1b[C'  # ASCII escape sequence for right arrow
+key_up_arrow = '\x1b[A'     # ASCII escape sequence for up arrow
+key_down_arrow = '\x1b[B'   # ASCII escape sequence for down arrow
+key_home = '\x1b[H'         # Home key (move to start)
+key_end = '\x1b[F'          # End key (move to end)
+key_page_up = '\x1b[5~'     # Page Up
+key_page_down = '\x1b[6~'   # Page Down
+
 # PS/2 scan code to key mapping for letters and numbers
 key_map = {
     # Numbers (top row)
@@ -78,6 +88,18 @@ key_map = {
     0x5A: '\n', # Enter
     0x66: '\b', # Backspace
 
+    # Arrow keys (using E0 extended codes)
+    0xE075: key_up_arrow,
+    0xE072: key_down_arrow,
+    0xE06B: key_left_arrow,
+    0xE074: key_right_arrow,
+
+    # Navigation keys
+    0xE06C: key_home,
+    0xE069: key_end,
+    0xE07D: key_page_up,
+    0xE07A: key_page_down,
+
     5: key_f1,
     6: key_f2,
     4: key_f3,
@@ -90,8 +112,6 @@ key_map = {
     9: key_f10,
     120: key_f11,
     7: key_f12,
-
-    0xe069: "end",
 }
 
 shift_key_map = {
