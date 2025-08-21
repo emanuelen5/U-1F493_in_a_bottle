@@ -12,26 +12,31 @@ def sleep_gen(ms: float):
         yield
 
 
-def send_envelope_animator(frame: FrameUpdater, initial_speed_ms=300, final_speed_ms=50):
+def send_envelope_animator(frame: FrameUpdater, time=1000):
+    t0 = utime.ticks_ms()
     frame.hide_cursor()
     frame.update_display_optimized("")
 
-    total_steps = 18
-    for pos in range(1, total_steps):
-        progress = min(max(0, (pos - 1) / 10), 1)
-        current_speed = initial_speed_ms - progress * (initial_speed_ms - final_speed_ms)
+    max_pos = len(ship) - 1
+    while True:
+        diff = utime.ticks_diff(utime.ticks_ms(), t0)
+        if diff > time:
+            break
+
+        progress = diff / time
+        pos = int(round(progress * max_pos))
 
         visible_part = ship[-pos - 1:]
         visible_part = visible_part[:16]  # Ensure it fits the display width
 
         text = "Skickar         " + visible_part
         frame.update_display_optimized(text[:32])
-        yield from sleep_gen(int(current_speed))
+        yield from sleep_gen(int(10))
 
     frame.update_display_optimized("Klart!")
     yield from sleep_gen(1000)
-    frame.update_display_optimized("")
     frame.show_cursor()
+    frame.update_display_optimized("")
 
 
 if __name__ == "__main__":
