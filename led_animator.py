@@ -35,11 +35,34 @@ class Pulse:
             self.active = False
 
 
+class LingeringPulse(Pulse):
+    def __init__(self, offset, red, green, blue, width, lifetime_ms):
+        self.offset = offset
+        super().activate(red, green, blue, width, lifetime_ms, active=True)
+
+    def advance(self):
+        return
+
+    def get_progress(self):
+        now = utime.ticks_ms()
+        elapsed = utime.ticks_diff(now, self.start_time)
+        elapsed = elapsed / self.lifetime_ms
+
+        progress = (math.sin(elapsed) * math.sin(1.235 * elapsed + self.offset) - ((math.sin(0.09 * elapsed + self.offset) + 1) * 13))
+        return progress
+
+    def get_position(self):
+        return self.offset + self.get_progress() / 50
+
+
 class LedAnimator:
     def __init__(self, led_strip: WS2812B_Driver):
         self.led_strip = led_strip
         self.pulses = [Pulse(0, 0, 0, 0, 0) for _ in range(10)]
         self.last_service = utime.ticks_ms()
+
+    def add_pulse(self, pulse: Pulse):
+        self.pulses.append(pulse)
 
     def add_wandering_pulse(self, red: int, green: int, blue: int, width: float = 3.0, lifetime_ms: int = 2000):
         pulse: None | Pulse = None
@@ -105,6 +128,7 @@ if __name__ == "__main__":
     last_pulse_time = utime.ticks_ms()
 
     print("Starting LED animator demo...")
+    animator.add_pulse(LingeringPulse(offset=0.9, red=20, green=0, blue=5, width=1, lifetime_ms=500))
     while True:
         now = utime.ticks_ms()
         if utime.ticks_diff(now, last_pulse_time) > pulse_interval_ms:

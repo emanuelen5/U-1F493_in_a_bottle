@@ -2,7 +2,7 @@ from text_animator import send_envelope_animator, sleep_gen
 from frame_updater import FrameUpdater
 from keyboard import KeyboardTracker, Key, key_f10, key_f11
 from lcd import setup_lcd
-from led_animator import LedAnimator
+from led_animator import LedAnimator, LingeringPulse
 from logbook import Logbook
 from ps2_pio import PS2PIODriver
 from hd44780 import get_japanese_keycode_map, add_missing_characters
@@ -21,6 +21,7 @@ add_missing_characters(lcd, keycode_map)
 frame = FrameUpdater(lcd, keycode_map)
 led_strip = WS2812B_Driver(pin_num=15, led_count=50, state_machine_id=1)
 led_animator = LedAnimator(led_strip)
+led_animator.add_pulse(LingeringPulse(offset=0.9, red=20, green=0, blue=5, width=1, lifetime_ms=500))
 
 print("Main loop started with PIO driver")
 
