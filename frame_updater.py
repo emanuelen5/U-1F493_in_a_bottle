@@ -7,6 +7,17 @@ class FrameUpdater:
         self.display_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
         self.keycode_map = keycode_map
         self.last_text = " " * 32
+        self.uses_cursor = True
+
+        self.show_cursor()
+
+    def hide_cursor(self):
+        self.uses_cursor = False
+        self.lcd.hide_cursor()
+
+    def show_cursor(self):
+        self.uses_cursor = True
+        self.lcd.blink_cursor_on()
 
     def update_display_optimized(self, text):
         """Update only the parts of the display that have changed"""
@@ -16,7 +27,7 @@ class FrameUpdater:
         # Convert text to character codes (last 31 chars, reversed order)
         charcodes = []
         for c in reversed(text):
-            if len(charcodes) >= 31:
+            if len(charcodes) >= (31 if self.uses_cursor else 32):
                 break
             charcode = self.keycode_map.get(c, None)
             if charcode is None:
@@ -48,11 +59,12 @@ class FrameUpdater:
                     # Cursor automatically moves right after writing (but doesn't wrap)
                     cursor_col += 1
 
-        # Position cursor at the end of text
-        text_len = len(charcodes)
-        if text_len > 32:
-            self.lcd.move_to(15, 1)
-        else:
-            self.lcd.move_to(text_len % 16, text_len // 16)
+        if self.uses_cursor:
+            # Position cursor at the end of text
+            text_len = len(charcodes)
+            if text_len > 32:
+                self.lcd.move_to(15, 1)
+            else:
+                self.lcd.move_to(text_len % 16, text_len // 16)
 
         self.last_text = text

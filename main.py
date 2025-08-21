@@ -14,7 +14,6 @@ ps2 = PS2PIODriver(data_pin=2, clock_pin=3)
 kbd = KeyboardTracker(verbose=True)
 
 lcd = setup_lcd()
-lcd.blink_cursor_on()
 
 keycode_map = get_japanese_keycode_map()
 add_missing_characters(lcd, keycode_map)
