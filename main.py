@@ -1,6 +1,6 @@
-from text_animator import send_envelope_animator
+from text_animator import send_envelope_animator, sleep_gen
 from frame_updater import FrameUpdater
-from keyboard import KeyboardTracker, Key, key_f10
+from keyboard import KeyboardTracker, Key, key_f10, key_f11
 from lcd import setup_lcd
 from led_animator import LedAnimator
 from logbook import Logbook
@@ -27,6 +27,18 @@ print("Main loop started with PIO driver")
 full_text = ""
 log = Logbook("logbook.txt")
 
+
+def animate_save():
+    with frame.cursor_hidden():
+        for _ in send_envelope_animator(frame, time=1500):
+            led_animator.service()
+        led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=3000)
+        frame.set_text("♥ " * 16)
+        for _ in sleep_gen(1000):
+            led_animator.service()
+    ps2.reset_sm()  # Clear any key presses that were queued during animation
+
+
 while True:
     gc.collect()
 
@@ -47,11 +59,7 @@ while True:
     for key in keys:
         if key.char == "\n":
             log.write_entry(full_text)
-            led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=3000)
-            for _ in send_envelope_animator(frame, time=1500):
-                gc.collect()
-                led_animator.service()
-            ps2.reset_sm()  # Clear any key presses that were queued during animation
+            animate_save()
             full_text = ""
         elif key.char == "\b":
             full_text = full_text[:-1]
@@ -62,6 +70,8 @@ while True:
             full_text = full_text[:idx]
         elif key.char == key_f10:
             led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=3000)
+        elif key.char == key_f11:
+            animate_save()
         elif key.char in keycode_map:
             full_text += key.char
 

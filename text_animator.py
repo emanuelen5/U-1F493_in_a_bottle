@@ -4,7 +4,8 @@ from frame_updater import FrameUpdater
 from hd44780 import char_envelope_left, char_envelope_right
 
 # Must be at least the width of the display
-ship = "." * 16 + char_envelope_left + char_envelope_right
+ship = " " * 16 + "♥"
+# ship = " " * 16 + char_envelope_left + char_envelope_right
 
 
 def sleep_gen(ms: float):
@@ -19,7 +20,6 @@ def ease_out(progress):
 
 def send_envelope_animator(frame: FrameUpdater, time=1500):
     t0 = utime.ticks_ms()
-    frame.hide_cursor()
     frame.set_text("")
 
     max_pos = len(ship) - 1
@@ -30,18 +30,15 @@ def send_envelope_animator(frame: FrameUpdater, time=1500):
 
         linear_progress = diff / time
         eased_progress = ease_out(linear_progress)
-        pos = int(round(eased_progress * max_pos))
+        pos = int(round(eased_progress * max_pos / 3) * 3)
 
         visible_part = ship[-pos - 1:]
         visible_part = visible_part[:16]  # Ensure it fits the display width
 
-        text = "Skickar         " + visible_part
+        text = "Skickar " + char_envelope_left + char_envelope_right + "       " + visible_part
         frame.set_text(text[:32])
         yield from sleep_gen(int(10))
 
-    frame.set_text("Klart!")
-    yield from sleep_gen(1000)
-    frame.show_cursor()
     frame.set_text("")
 
 

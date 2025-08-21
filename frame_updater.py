@@ -20,6 +20,9 @@ class FrameUpdater:
         self.uses_cursor = True
         self.lcd.blink_cursor_on()
 
+    def cursor_hidden(self):
+        return CursorHider(self)
+
     def set_text(self, text):
         """Update only the parts of the display that have changed"""
         if text == self.last_text:
@@ -69,3 +72,14 @@ class FrameUpdater:
                 self.lcd.move_to(text_len % 16, text_len // 16)
 
         self.last_text = text
+
+
+class CursorHider:
+    def __init__(self, frame: FrameUpdater):
+        self.frame = frame
+
+    def __enter__(self):
+        self.frame.hide_cursor()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.frame.show_cursor()
