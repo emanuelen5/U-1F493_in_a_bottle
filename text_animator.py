@@ -1,4 +1,5 @@
 import utime
+import math
 from frame_updater import FrameUpdater
 from hd44780 import char_envelope_left, char_envelope_right
 
@@ -12,7 +13,11 @@ def sleep_gen(ms: float):
         yield
 
 
-def send_envelope_animator(frame: FrameUpdater, time=1000):
+def ease_out(progress):
+    return 1 - math.cos(progress * math.pi / 2)
+
+
+def send_envelope_animator(frame: FrameUpdater, time=1500):
     t0 = utime.ticks_ms()
     frame.hide_cursor()
     frame.update_display_optimized("")
@@ -23,8 +28,9 @@ def send_envelope_animator(frame: FrameUpdater, time=1000):
         if diff > time:
             break
 
-        progress = diff / time
-        pos = int(round(progress * max_pos))
+        linear_progress = diff / time
+        eased_progress = ease_out(linear_progress)
+        pos = int(round(eased_progress * max_pos))
 
         visible_part = ship[-pos - 1:]
         visible_part = visible_part[:16]  # Ensure it fits the display width

@@ -51,8 +51,8 @@ while True:
     for key in keys:
         if key.char == "\n":
             log.write_entry(full_text)
-            led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=2000)
-            for _ in send_envelope_animator(frame):
+            led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=3000)
+            for _ in send_envelope_animator(frame, time=1500):
                 gc.collect()
                 led_animator.service()
             ps2.reset_sm()  # Clear any key presses that were queued during animation
@@ -65,7 +65,7 @@ while True:
                 idx = 0
             full_text = full_text[:idx]
         elif key.char == key_f10:
-            led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=2000)
+            led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=3000)
         elif key.char in keycode_map:
             full_text += key.char
 
