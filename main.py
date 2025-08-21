@@ -69,5 +69,5 @@ while True:
         elif key.char in keycode_map:
             full_text += key.char
 
-    frame.update_display_optimized(full_text)
+    frame.set_text(full_text)
     led_animator.service()

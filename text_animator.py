@@ -20,7 +20,7 @@ def ease_out(progress):
 def send_envelope_animator(frame: FrameUpdater, time=1500):
     t0 = utime.ticks_ms()
     frame.hide_cursor()
-    frame.update_display_optimized("")
+    frame.set_text("")
 
     max_pos = len(ship) - 1
     while True:
@@ -36,13 +36,13 @@ def send_envelope_animator(frame: FrameUpdater, time=1500):
         visible_part = visible_part[:16]  # Ensure it fits the display width
 
         text = "Skickar         " + visible_part
-        frame.update_display_optimized(text[:32])
+        frame.set_text(text[:32])
         yield from sleep_gen(int(10))
 
-    frame.update_display_optimized("Klart!")
+    frame.set_text("Klart!")
     yield from sleep_gen(1000)
     frame.show_cursor()
-    frame.update_display_optimized("")
+    frame.set_text("")
 
 
 if __name__ == "__main__":

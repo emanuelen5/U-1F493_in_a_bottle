@@ -13,13 +13,14 @@ class FrameUpdater:
 
     def hide_cursor(self):
         self.uses_cursor = False
+
         self.lcd.hide_cursor()
 
     def show_cursor(self):
         self.uses_cursor = True
         self.lcd.blink_cursor_on()
 
-    def update_display_optimized(self, text):
+    def set_text(self, text):
         """Update only the parts of the display that have changed"""
         if text == self.last_text:
             return  # No changes, skip update
