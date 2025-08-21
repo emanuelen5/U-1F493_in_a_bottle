@@ -1,3 +1,4 @@
+from text_animator import send_envelope_animator
 from frame_updater import FrameUpdater
 from keyboard import KeyboardTracker, Key, key_f10
 from lcd import setup_lcd
@@ -30,7 +31,6 @@ log = Logbook("logbook.txt")
 # Display buffer to track what's currently shown (2 lines × 16 chars)
 display_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
 
-
 while True:
     gc.collect()
 
@@ -53,6 +53,10 @@ while True:
         if key.char == "\n":
             log.write_entry(full_text)
             led_animator.add_wandering_pulse(red=255, green=0, blue=20, width=1.5, lifetime_ms=2000)
+            for _ in send_envelope_animator(frame):
+                gc.collect()
+                led_animator.service()
+            ps2.reset_sm()  # Clear any key presses that were queued during animation
             full_text = ""
         elif key.char == "\b":
             full_text = full_text[:-1]
