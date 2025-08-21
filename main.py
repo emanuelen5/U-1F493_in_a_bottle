@@ -27,9 +27,6 @@ print("Main loop started with PIO driver")
 full_text = ""
 log = Logbook("logbook.txt")
 
-# Display buffer to track what's currently shown (2 lines × 16 chars)
-display_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
-
 while True:
     gc.collect()
 
@@ -39,7 +36,6 @@ while True:
     if ps2.get_parity_error_count() > 0:
         lcd.clear()
         # Reset display buffer since we cleared the screen
-        display_buffer = [[ord(" ") for _ in range(16)] for _ in range(2)]
         lcd.putstr("Parity error. Resetting PIO...")
         ps2.reset_sm()
         continue
